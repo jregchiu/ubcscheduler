@@ -38,44 +38,57 @@ def main():
     arr = {}
     for c in courses:
         for s in courses[c]['sections']:
-            for a in courses[c]['activity_set']:
-                for t in terms:
-                    for d in days:
-                        for h in hours:
-                            arr[(c, s, a, t, d, h)] = solver.BoolVar('{0}, {1}, {2}, {3}, {4}, {5}'.format(c, s, a, t, d, h))
-    arr_flat = [arr[(c, s, a, t, d, h)] for c in courses for s in courses[c]['sections'] for a in courses[c]['activity_set'] for t in terms for d in days for h in hours]
+            for t in terms:
+                for d in days:
+                    for h in hours:
+                        arr[(s, t, d, h)] = solver.BoolVar('{0}, {1}, {2}, {3}'.format(s, t, d, h))
+    arr_flat = [arr[(s, t, d, h)] for c in courses for s in courses[c]['sections'] for t in terms for d in days for h in hours]
 
     # create constraints
     for t in terms:
         for d in days:
             for h in hours:
-                solver.Add(solver.Sum(arr[(c, s, a, t, d, h)] for c in courses for s in courses[c]['sections'] for a in courses[c]['activity_set']) >= 0)
-                solver.Add(solver.Sum(arr[(c, s, a, t, d, h)] for c in courses for s in courses[c]['sections'] for a in courses[c]['activity_set']) <= 1)
+                solver.Add(solver.Sum(arr[(s, t, d, h)] for c in courses for s in courses[c]['sections']) >= 0)
+                solver.Add(solver.Sum(arr[(s, t, d, h)] for c in courses for s in courses[c]['sections']) <= 1)
 
     for c in courses:
         sections = courses[c]['sections']
-        activities = courses[c]['activity_set']
         for s in sections:
             section = sections[s]
             section_hours = [h for h in hours if hours.index(h) >= hours.index(section['start']) and hours.index(h) < hours.index(section['end'])]
-            for a in activities:
-                for t in terms:
-                    for d in days:
-                        for h in hours:
-                            if a != section['activity'] or t not in section['term'] or d not in section['days'] or h not in section_hours:
-                                solver.Add(arr[(c, s, a, t, d, h)] == False)
             for t in terms:
                 for d in days:
-                    solver.Add(solver.Max(solver.Sum(arr[(c, s, a, t, d, h)] for h in hours for a in activities) == len(section_hours), solver.Sum(arr[(c, s, a, t, d, h)] for h in hours for a in activities) == 0) == 1)
+                    for h in hours:
+                        if t not in section['term'] or d not in section['days'] or h not in section_hours:
+                            solver.Add(arr[(s, t, d, h)] == False)
+            for t in terms:
+                for d in days:
+                    solver.Add(solver.Max(solver.Sum(arr[(s, t, d, h)] for h in hours) == len(section_hours), solver.Sum(arr[(s, t, d, h)] for h in hours) == 0) == 1)
                 for h in hours:
-                    solver.Add(solver.Max(solver.Sum(arr[(c, s, a, t, d, h)] for d in days for a in activities) == len(section['days']), solver.Sum(arr[(c, s, a, t, d, h)] for d in days for a in activities) == 0) == 1)
-        # need to figure out if the below constraints are correct
+                    solver.Add(solver.Max(solver.Sum(arr[(s, t, d, h)] for d in days) == len(section['days']), solver.Sum(arr[(s, t, d, h)] for d in days) == 0) == 1)
+        '''need to figure out if the below constraints are correct
         for a in activities:
             section = next (iter ({s: sections[s] for s in sections if sections[s]['activity'] == a}.values()))
             section_hours = [h for h in hours if hours.index(h) >= hours.index(section['start']) and hours.index(h) < hours.index(section['end'])]
             solver.Add(solver.Sum(arr[(c, s, a, t, d, h)] for s in sections for t in terms for d in days for h in hours) == len(section_hours) * len(section['days']))
-        # solver.Add(solver.Count([arr[(c, s, a, t, d, h)] for s in sections for a in activities for t in terms for d in days for h in hours], 1, int(courses[c]['activities'])))
+        solver.Add(solver.Sum(arr[(c, s, a, t, d, h)] for s in sections for a in activities for t in terms for d in days for h in hours) == courses[c]['activities'] * ())
+        '''
 
+    '''
+    course_activities = {}
+    for c in courses:
+        sections = courses[c]['sections']
+        activities = courses[c]['activity_set']
+        for a in activities:
+            course_activities[(c, a)] = solver.BoolVar('{0}, {1}'.format(c, a))
+            sections_activities = {s: sections[s] for s in sections if sections[s]['activity'] == a}
+            section = next (iter (sections_activities.values()))
+            section_hours = [h for h in hours if hours.index(h) >= hours.index(section['start']) and hours.index(h) < hours.index(section['end'])]
+            solver.Add(solver.Sum(arr[(s, t, d, h)] for s in sections_activities for t in terms for d in days for h in hours) == len(section_hours) * len(section['days']))
+            solver.Add(course_activities[(c, a)] == True)
+        solver.Add(solver.Sum(course_activities[(c, a)] for a in activities) == int(courses[c]['activities']))
+    '''
+    
     # create the decision builder
     db = solver.Phase(arr_flat, solver.CHOOSE_FIRST_UNBOUND, solver.ASSIGN_MIN_VALUE)
 
@@ -88,6 +101,16 @@ def main():
     solver.Solve(db, [collector])
     print('Solutions found:', collector.SolutionCount())
     print('Time:', solver.WallTime(), 'ms')
+
+    # print Solutions
+    for sol in range(collector.SolutionCount()):
+        print('Solution:', sol, '\n')
+        for c in courses:
+            for s in courses[c]['sections']:
+                print(s)
+                for d in days:
+                    for h in hours:
+                        print(collector.Value(sol, arr[(s, t, d, h)]))
 
 if __name__ == "__main__":
     main()

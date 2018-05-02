@@ -5,16 +5,16 @@ class Section(Base):
     __tablename__ = 'sections'
 
     id = Column(Integer, primary_key=True)
-    course = Column(String)
-    year = Column(String)
-    session = Column(String)
-    code = Column(String, unique=True)
+    course = Column(String, nullable=False)
+    year = Column(String, nullable=False)
+    session = Column(String, nullable=False)
+    code = Column(String, nullable=False)
     status = Column(String)
-    activity = Column(String)
-    term = Column(ARRAY(String))
-    days = Column(ARRAY(String))
-    start = Column(String)
-    end = Column(String)
+    activity = Column(String, nullable=False)
+    term = Column(ARRAY(String), nullable=False)
+    days = Column(ARRAY(String), nullable=False)
+    start = Column(String, nullable=False)
+    end = Column(String, nullable=False)
 
     def __init__(self, course, year, session, code, status, activity, term, days, start, end):
         self.course = course

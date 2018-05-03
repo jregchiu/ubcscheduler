@@ -1,0 +1,23 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+click = "*"
+gunicorn = "*"
+itsdangerous = "*"
+ortools = "*"
+protobuf = "*"
+"psycopg2" = "*"
+six = "*"
+Flask = "*"
+"Jinja2" = "*"
+MarkupSafe = "*"
+SQLAlchemy = "*"
+Werkzeug = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.6"

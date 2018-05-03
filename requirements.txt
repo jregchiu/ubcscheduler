@@ -1,3 +1,0 @@
-ortools==6.7.4973
-protobuf==3.5.2.post1
-six==1.11.0

@@ -14,8 +14,12 @@ six = "*"
 Flask = "*"
 "Jinja2" = "*"
 MarkupSafe = "*"
-SQLAlchemy = "*"
 Werkzeug = "*"
+flask-sqlalchemy = "*"
+flask-migrate = "*"
+sqlalchemy = "*"
+flask-wtf = "*"
+flask-bootstrap = "*"
 
 [dev-packages]
 

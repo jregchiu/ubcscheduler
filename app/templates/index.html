@@ -1,0 +1,49 @@
+{% extends 'bootstrap/base.html' %}
+{% import 'bootstrap/wtf.html' as wtf %}
+{% block title %}UBC Course Scheduler{% endblock %}
+
+{% block navbar %}
+<nav class='navbar navbar-inverse'>
+  <div class='container'>
+    <a class='navbar-brand' href='#'>UBC Scheduler</a>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+  <div class='container'>
+    <div class='row'>
+      <div class='col-xs-12 col-md-4'>
+        <p>Please input your courses and terms in a line-delimited list, like below.</p>
+        <ul class='list-unstyled'>
+          <li>CPSC 110: 1</li>
+          <li>CPSC 121: 1</li>
+          <li>MATH 200: 1</li>
+          <li>CPSC 210: 2</li>
+          <li>MATH 221: 2</li>
+          <li>ENGL 112: 2</li>
+        </ul>
+        {{ wtf.quick_form(form) }}
+      </div>
+      <div class='col-xs-12 col-md-8'>
+        {% if results %}
+          <table class='table table-striped'>
+            <thead>
+              <tr>
+                <th>Solution #</th>
+              </tr>
+            </thead>
+            {% for result in results %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                {% for s in result %}
+                  <td>{{ s }}</td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </table>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
